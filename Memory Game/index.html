@@ -12,35 +12,132 @@
         <h1 class="text-center my-4">Memory Game</h1>
         <div id="game-board" class="row justify-content-center">
             <!-- Card elements will go here -->
-            <div class="card"  id="1" onclick="flipCard()"></div>
-            <div class="card"  id="2" onclick="flipCard()"></div>
-            <div class="card"  id="3" onclick="flipCard()"></div>
-            <div class="card"  id="4" onclick="flipCard()"></div>
-            <div class="card"  id="5" onclick="flipCard()"></div>
-            <div class="card"  id="6" onclick="flipCard()"></div>
-            <div class="card"  id="7" onclick="flipCard()"></div>
-            <div class="card"  id="8" onclick="flipCard()"></div>
-            <div class="card"  id="9" onclick="flipCard()"></div>
-            <div class="card"  id="10" onclick="flipCard()"></div>
-            <div class="card"  id="11" onclick="flipCard()"></div>
-            <div class="card"  id="12" onclick="flipCard()"></div>
-            <div class="card"  id="13" onclick="flipCard()"></div>
-            <div class="card"  id="14" onclick="flipCard()"></div>
-            <div class="card"  id="15" onclick="flipCard()"></div>
-            <div class="card"  id="16" onclick="flipCard()"></div>
+            
         </div>
+        <button id="restartButton" class="btn btn-primary mt-4" onclick="restartGame()" style="display: none;">Restart Game</button>
     </div>
     <script>
         // Place script code here
-        let card  = document.getElementsByClassName(card);
-        let item = [car, car, banana, banana, house, house, computer, computer, JavaScript, JavaScript, HTML, HTML, "FH Technikum", "FH Technikum", Wien, Wien];
-    
+        let card  = document.getElementsByClassName("card");
+        let firstCard = null;
+        let secondCard = null;
+        let hasFlippedCard = false;
+        let lockBoard = false;
+        let matchedCards = 0;
+
+        const item = ["car", "banana", "house", "computer", "JavaScript", "HTML", "FH Technikum", "Wien"];
+        const pickItem = [...item, ...item];
+        const sumOfCards = pickItem.length;
+
+
+        shufleCards();
+
+
+        function buildCards(item) {
+            const element = document.createElement("div");
+            element.classList.add("card");
+            element.setAttribute("data-framework", item);
+            element.innerHTML = '<span class="card-text">' + item + '</span>';
+            element.querySelector(".card-text").style.visibility = "hidden";
+            element.setAttribute("onclick", "flipCard(this)");
+            return element;
+        }
+
+
+
         function shufleCards(){
+            for(let i = 0; i < sumOfCards; i++){
+                const randomNum = Math.floor(Math.random() * pickItem.length);
+                const cards = pickItem[randomNum];
+
+                //nach dem es ausgewählt ist wird gelöscht
+                pickItem.splice(randomNum, 1);
+                document.getElementById("game-board").appendChild(buildCards(cards));
+            }
+        }
+        
+        function flipCard(item){
+
+            if(lockBoard) return;
+
+            let element = item;
+            element.classList.add("flipped");
+            element.querySelector(".card-text").style.visibility = "visible"; 
+            
+            if(!hasFlippedCard){
+                hasFlippedCard = true;
+                firstCard = item;
+
+                return;
+            }
+
+            secondCard = item;
+            hasFlippedCard = false;
+
+            checkMatch();
+        }
+
+
+        function checkMatch(){
+            
+            lockBoard = true;
+
+            console.log(firstCard.dataset.framework);
+            console.log(secondCard.dataset.framework);
+            if(firstCard.dataset.framework === secondCard.dataset.framework){
+                
+                disableCards();
+                matchedCards += 2;
+
+                gameDone();
+
+                return;
+            }
+
+            setTimeout(() => unflipCards(), 1500);
             
         }
 
-        function flipCard(){
+        function disableCards(){
+            firstCard.removeAttribute("onclick");
+            secondCard.removeAttribute("onclick");
+            
+            lockBoard = false;
+        }
 
+        function unflipCards(){
+            firstCard.classList.remove("flipped");
+            secondCard.classList.remove("flipped");
+
+            firstCard.querySelector(".card-text").style.visibility = "hidden";
+            secondCard.querySelector(".card-text").style.visibility = "hidden";
+            
+            lockBoard = false;
+       
+        }
+    
+        function gameDone(){
+            if(matchedCards === sumOfCards){
+                setTimeout(() => {
+                    alert("good job!")
+                    document.getElementById("restartButton").style.display = "block";
+                }, 500);
+            }
+        }
+
+        function restartGame(){
+            matchedCards = 0;
+            firstCard = null;
+            secondCard = null;
+            hasFlippedCard = false;
+            lockBoard = false;
+
+            document.getElementById("game-board").innerHTML = "";
+
+            pickItem.push(...item, ...item);
+            shufleCards();
+
+            document.getElementById("restartButton").style.display = "none";
         }
     </script>
 </body>
